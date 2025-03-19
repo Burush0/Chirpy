@@ -7,8 +7,9 @@ import (
 
 func main() {
 	mux := http.NewServeMux()
-	fileHandler := http.FileServer(http.Dir("."))
-	mux.Handle("/", fileHandler)
+	fileHandler := http.StripPrefix("/app", http.FileServer(http.Dir(".")))
+	mux.Handle("/app/", fileHandler)
+	mux.HandleFunc("/healthz", healthCheck)
 	srv := &http.Server{
 		Addr:    ":8080",
 		Handler: mux,
