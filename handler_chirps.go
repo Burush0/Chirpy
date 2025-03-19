@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/burush0/chirpy/internal/auth"
 	"github.com/burush0/chirpy/internal/database"
 	"github.com/google/uuid"
 )
@@ -33,6 +34,16 @@ func (cfg *apiConfig) handlerCreateChirp(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "Unauthorized access", err)
+	}
+
+	jwtUserID, err := auth.ValidateJWT(token, cfg.jwt_secret)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "Unauthorized access", err)
+	}
+
 	cleaned, err := validateChirp(params.Body)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error(), err)
@@ -41,7 +52,7 @@ func (cfg *apiConfig) handlerCreateChirp(w http.ResponseWriter, r *http.Request)
 
 	chirp, err := cfg.db.CreateChirp(r.Context(), database.CreateChirpParams{
 		Body:   cleaned,
-		UserID: params.UserID,
+		UserID: jwtUserID,
 	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't create chirp", err)
