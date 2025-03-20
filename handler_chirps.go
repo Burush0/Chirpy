@@ -37,11 +37,13 @@ func (cfg *apiConfig) handlerCreateChirp(w http.ResponseWriter, r *http.Request)
 	token, err := auth.GetBearerToken(r.Header)
 	if err != nil {
 		respondWithError(w, http.StatusUnauthorized, "Unauthorized access", err)
+		return
 	}
 
 	jwtUserID, err := auth.ValidateJWT(token, cfg.jwt_secret)
 	if err != nil {
 		respondWithError(w, http.StatusUnauthorized, "Unauthorized access", err)
+		return
 	}
 
 	cleaned, err := validateChirp(params.Body)
