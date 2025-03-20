@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 
@@ -104,6 +105,19 @@ func (cfg *apiConfig) handlerGetChirps(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	authorIDString := r.URL.Query().Get("author_id")
+	var authorID uuid.UUID
+	var parseErr error
+	if authorIDString != "" {
+		authorID, parseErr = uuid.Parse(authorIDString)
+		if parseErr != nil {
+			respondWithError(w, http.StatusBadRequest, "Invalid author ID", parseErr)
+			return
+		}
+	}
+
+	sortString := r.URL.Query().Get("sort")
+
 	chirps := []Chirp{}
 	for _, dbChirp := range dbChirps {
 		chirp := Chirp{
@@ -113,7 +127,14 @@ func (cfg *apiConfig) handlerGetChirps(w http.ResponseWriter, r *http.Request) {
 			Body:      dbChirp.Body,
 			UserID:    dbChirp.UserID,
 		}
-		chirps = append(chirps, chirp)
+
+		if authorIDString == "" || chirp.UserID == authorID {
+			chirps = append(chirps, chirp)
+		}
+	}
+
+	if sortString == "desc" {
+		sort.Slice(chirps, func(i, j int) bool { return chirps[i].CreatedAt.After(chirps[j].CreatedAt) })
 	}
 
 	respondWithJSON(w, http.StatusOK, chirps)
