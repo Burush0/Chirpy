@@ -261,7 +261,7 @@ go build -o out && ./out
   - `author_id` (optional): Filters chirps by the specified user ID.
   - `sort` (optional): Sorts chirps by creation time. Valid values: `asc` (default) or `desc`.
 - **Response Body** (on success):
-  ```json
+  ```jsonc
   [
     {
       "id": "uuid",
