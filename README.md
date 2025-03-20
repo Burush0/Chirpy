@@ -270,7 +270,7 @@ go build -o out && ./out
       "body": "string",
       "user_id": "uuid"
     },
-    ...
+    // ...
   ]
   ```
 - **Response Codes**:
